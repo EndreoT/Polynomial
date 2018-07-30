@@ -119,7 +119,6 @@ class TestPolynomial(unittest.TestCase):
         random.seed(9768)
         poly = Polynomial.create_random_polynomial()
         poly_str_integral = '1/2X^12 + 6/11X^11 + 2/3X^9 + 5/4X^8 + 8/7X^7 + 1/2X^6 + 3/5X^5 + 4/3X^3 + X^2 + 6X + 8'
-
         self.assertEqual(str(poly.integrate(8)), poly_str_integral)
 
 
