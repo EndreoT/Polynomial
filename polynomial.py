@@ -30,15 +30,16 @@ class Polynomial:
             ['4', '2', '0', '5']
         """
         if not array:
-            raise ValueError("Array must not be empty")
+            raise ValueError("Array must not be empty.")
 
         if self._check_if_correctly_formatted_tuple(array):
             array = [(Fraction(i), int(j)) for i, j in array]
             if not self._check_if_tuple_contains_coefficients(array):
-                raise ValueError("Incorrect formatting: at least one non-zero coefficient needed")
+                raise ValueError("Incorrect formatting: at least one non-zero coefficient needed.")
             array = self._collect_terms(array)
             max_dimension = max(j for i, j in array) + 1
             empty_array = [0] * max_dimension
+            #Feed polynomial coefficients into array
             for i, j in array:
                 empty_array[j] = i
             vector_repr = [Fraction(i).limit_denominator(100) for i in empty_array]
@@ -46,16 +47,16 @@ class Polynomial:
 
         elif all(type(x) in {int, float, Fraction} for x in array):
             if self._check_if_list_only_contains_zeroes(array):
-                raise ValueError("Array must contain at lease one non-zero int, float, or Fraction")
+                raise ValueError("Array must contain at lease one non-zero int, float, or Fraction.")
             vector_repr = self._trim_array(array)
             self.vector_repr = [Fraction(i).limit_denominator(100) for i in vector_repr]
         else:
-            raise ValueError("Incorrect list formatting")
+            raise ValueError("Incorrect list formatting.")
 
     @staticmethod
     def _check_if_correctly_formatted_tuple(
             array: List[Tuple[Union[int, float, Fraction], Union[int, Fraction]]]) -> bool:
-        """Determines if every tuple in the array is correctly formatted"""
+        """Determines if every tuple in the array is correctly formatted."""
         for element in array:
             if not (type(element) is tuple
                     and len(element) == 2
@@ -79,7 +80,12 @@ class Polynomial:
 
     @staticmethod
     def _trim_array(array: List[Fraction]) -> List[Fraction]:
-        """Removes unnecessary higher order terms with zero value constants"""
+        """
+        Removes unnecessary higher order terms with zero value constants.
+        Example:
+        >>>_trim_array([1, 2, 3, 0, 0, 0])
+        [Fraction(1), Fraction(2), Fraction(3)]
+        """
         index = len(array) - 1
         while array[index] == 0:
             index -= 1
@@ -87,7 +93,7 @@ class Polynomial:
 
     @staticmethod
     def _collect_terms(input_array: List[Tuple[Fraction, int]]) -> List[Tuple[Fraction, int]]:
-        """Collects non-unique powered terms"""
+        """Collects non-unique powered terms."""
         not_unique = set()
         possibly_unique = set()
         for i, j in input_array:
@@ -109,6 +115,7 @@ class Polynomial:
 
     @classmethod
     def create_random_polynomial(cls, number_of_terms: int = None) -> "Polynomial":
+        """Create a random Polynomial object with an optional fixed number of terms."""
         if number_of_terms:
             if 1 > number_of_terms > 20:
                 raise ValueError("number_of_terms must be > 1 and <= 20")
@@ -186,11 +193,11 @@ class Polynomial:
         return self.vector_repr
 
     def get_vector_str(self) -> List[str]:
-        """Human readable vector representation of the polynomial"""
+        """Human readable vector representation of the polynomial."""
         return [str(i.numerator) if i.denominator == 1 else str(i) for i in self.vector_repr]
 
     def get_degree(self) -> int:
-        """Return order of highest degree term"""
+        """Return order of highest degree term."""
         return len(self.vector_repr) - 1
 
     def __len__(self):
