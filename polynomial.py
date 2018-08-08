@@ -16,16 +16,15 @@ class Polynomial:
                 of length two, each representing an algebraic polynomial term. The first tuple element corresponds
                 to the term's coefficient and is either an int, float or Fraction. The second tuple element
                 corresponds to the term's power and must evaluate to a positive integer >= 0
-
         Examples:
             >>> poly = Polynomial([(2, 3), (5, 2), (2, 1), (6, 3)])
             >>> str(poly)
-            '8X**3 + 5X**2 + 2X'
+            '8X^3 + 5X^2 + 2X'
             >>> poly.get_vector_str()
             ['0', '2', '5', '8']
             >>> poly2 = Polynomial([4, 2, 0, 5, 0])
-            >>>str(poly2)
-            '5X**3 + 2X + 4'
+            >>> str(poly2)
+            '5X^3 + 2X + 4'
             >>> poly2.get_vector_str()
             ['4', '2', '0', '5']
         """
@@ -36,11 +35,11 @@ class Polynomial:
             array = [(Fraction(i), int(j)) for i, j in array]
             if not self._check_if_tuple_contains_coefficients(array):
                 raise ValueError("Incorrect formatting: at least one non-zero coefficient needed.")
-            array = self._collect_terms(array)
+            processed_array = self._collect_terms(array)
             max_dimension = max(j for i, j in array) + 1
             empty_array = [0] * max_dimension
-            #Feed polynomial coefficients into array
-            for i, j in array:
+            # Feed polynomial coefficients into array
+            for i, j in processed_array:
                 empty_array[j] = i
             vector_repr = [Fraction(i).limit_denominator(100) for i in empty_array]
             self.vector_repr = self._trim_array(vector_repr)
@@ -60,6 +59,7 @@ class Polynomial:
         for element in array:
             if not (type(element) is tuple
                     and len(element) == 2
+                    and type(element[0]) in {int, float, Fraction}
                     and type(element[1]) in {int, Fraction}
                     and element[1] >= 0):
                 return False
@@ -76,15 +76,17 @@ class Polynomial:
 
     @staticmethod
     def _check_if_list_only_contains_zeroes(array: List[Union[int, float, Fraction]]) -> bool:
-        return all(1 if not e else 0 for e in array)
+        return all(1 if not item else 0 for item in array)
 
     @staticmethod
     def _trim_array(array: List[Fraction]) -> List[Fraction]:
         """
         Removes unnecessary higher order terms with zero value constants.
+
         Example:
-        >>>_trim_array([1, 2, 3, 0, 0, 0])
-        [Fraction(1), Fraction(2), Fraction(3)]
+        >>> array = [Fraction(1, 1), Fraction(2, 1), Fraction(3, 1),Fraction(0, 1), Fraction(0, 1), Fraction(0, 1)]
+        >>> Polynomial._trim_array(array)
+        [Fraction(1, 1), Fraction(2, 1), Fraction(3, 1)]
         """
         index = len(array) - 1
         while array[index] == 0:
@@ -93,25 +95,20 @@ class Polynomial:
 
     @staticmethod
     def _collect_terms(input_array: List[Tuple[Fraction, int]]) -> List[Tuple[Fraction, int]]:
-        """Collects non-unique powered terms."""
-        not_unique = set()
-        possibly_unique = set()
+        """
+        Collects same powered terms.
+
+        Example:
+        >>> array = [(Fraction(1), 1), (Fraction(2), 1), (Fraction(3), 2), (Fraction(8), 2)]
+        >>> Polynomial._collect_terms(array)
+        [(Fraction(3, 1), 1), (Fraction(11, 1), 2)]
+        """
+        term_dict = dict()
         for i, j in input_array:
-            if j not in possibly_unique:
-                possibly_unique.add(j)
-            else:
-                not_unique.add(j)
-        terms_for_collecting = dict()
-        terms_not_for_collecting = []
-        for i, j in input_array:
-            if j in not_unique:
-                terms_for_collecting[j] = terms_for_collecting.get(j, 0) + i
-            else:
-                terms_not_for_collecting.append((i, j))
-        collected_terms = list(terms_for_collecting.items())
-        collected_terms = [(j, i) for i, j in collected_terms]
-        terms_not_for_collecting.extend(collected_terms)
-        return terms_not_for_collecting
+            term_dict[j] = term_dict.get(j, 0) + i
+        items = term_dict.items()
+        result = [(j, i) for i, j in items]
+        return result
 
     @classmethod
     def create_random_polynomial(cls, number_of_terms: int = None) -> "Polynomial":
@@ -135,9 +132,7 @@ class Polynomial:
             smaller_vector = min([self, other], key=len).get_vector_repr()
             larger_vector = max([self, other], key=len).get_vector_repr()
             smaller_vector.extend(vector_extension)
-            assert len(smaller_vector) == len(larger_vector)
             return [operation(i, j) for (i, j) in zip(smaller_vector, larger_vector)]
-        assert len(self) == len(other)
         return [operation(i, j) for (i, j) in zip(self.get_vector_repr(), other.get_vector_repr())]
 
     def add(self, other: "Polynomial") -> "Polynomial":
@@ -174,7 +169,7 @@ class Polynomial:
         derivative = [poly_vector[i] * (i + 1) for i in range(len(poly_vector))]
         return cls(derivative)
 
-    def derivate(self) -> "Polynomial":
+    def derive(self) -> "Polynomial":
         return self.get_derivative(self)
 
     @classmethod
