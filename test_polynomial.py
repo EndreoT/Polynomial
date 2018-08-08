@@ -25,6 +25,8 @@ class TestPolynomial(unittest.TestCase):
         empty_list = []
         negative_powers = [(4, -6), (3, 5), (45, 124), (34, 0)]
         non_int_powers = [(3, Fraction(5.8)), (4, 0), (45, 234), (5, 7)]
+        incorrect_objects = [("4", 4), (5, 8), (234, 4)]
+        more_incorrect_objects = ["3", 5, 3, 6, 3]
 
         poly = Polynomial(array)
         poly_str = "22/5X^5 + 6X^4 + 1/3X^3 + 5X^2 + 1"
@@ -40,6 +42,8 @@ class TestPolynomial(unittest.TestCase):
         self.assertRaises(ValueError, Polynomial, empty_list)
         self.assertRaises(ValueError, Polynomial, negative_powers)
         self.assertRaises(ValueError, Polynomial, non_int_powers)
+        self.assertRaises(ValueError, Polynomial, incorrect_objects)
+        self.assertRaises(ValueError, Polynomial, more_incorrect_objects)
 
     def test_check_if_list_only_contains_zeroes(self):
         incorrect_list = [0 for _ in range(25)]
@@ -113,7 +117,7 @@ class TestPolynomial(unittest.TestCase):
         random.seed(9768)
         poly = Polynomial.create_random_polynomial()
         poly_str_deriv = '66X^10 + 60X^9 + 48X^7 + 70X^6 + 48X^5 + 15X^4 + 12X^3 + 8X + 2'
-        self.assertEqual(str(poly.derivate()), poly_str_deriv)
+        self.assertEqual(str(poly.derive()), poly_str_deriv)
 
     def test_polynomial_integral(self):
         random.seed(9768)
