@@ -1,7 +1,6 @@
 import unittest
 import random
 from polynomial import Polynomial
-from fractions import Fraction
 
 
 test_polynomial_1 = Polynomial([(6, 13), (3, 11), (8, 10), (4, 9), (4, 8), (9, 7), (2, 6), (2, 5), (10, 1), (7, 0)])
@@ -18,13 +17,12 @@ class TestPolynomial(unittest.TestCase):
         self.poly_2 = test_polynomial_2
 
     def test_polynomial_init(self):
-        array = [1, 0, 5, Fraction(1, 3), 6, 4.4, 0, 0, 0]
+        array = [1, 0, 5, 1/3, 6, 4.4, 0, 0, 0]
         tuple_array = [(13, 0), (2, 5), (3, 6), (6, 5), (8, 5), (9, 1), (0, 34), (0, 2345)]
-        fraction_tuples = [(3, Fraction(3, 1)), (5, Fraction(6)), (2, 0)]
         incorrect_list = [0 for _ in range(25)]
         empty_list = []
         negative_powers = [(4, -6), (3, 5), (45, 124), (34, 0)]
-        non_int_powers = [(3, Fraction(5.8)), (4, 0), (45, 234), (5, 7)]
+        non_int_powers = [(3, 5.8), (4, 0), (45, 234), (5, 7)]
         incorrect_objects = [("4", 4), (5, 8), (234, 4)]
         more_incorrect_objects = ["3", 5, 3, 6, 3]
 
@@ -33,10 +31,7 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(str(poly), poly_str)
 
         poly_array = [13, 9, 0, 0, 0, 16, 3]
-        self.assertEqual(Polynomial(tuple_array).get_vector_repr(), [Fraction(i) for i in poly_array])
-
-        fraction_array = [2, 0, 0, 3, 0, 0, 5]
-        self.assertEqual(Polynomial(fraction_tuples).get_vector_repr(), fraction_array)
+        self.assertEqual(Polynomial(tuple_array).get_vector_repr(), poly_array)
 
         self.assertRaises(ValueError, Polynomial, incorrect_list)
         self.assertRaises(ValueError, Polynomial, empty_list)
@@ -51,7 +46,6 @@ class TestPolynomial(unittest.TestCase):
 
     def test_check_if_tuple_contains_coefficients(self):
         incorrect_list = [(0, 4), (0, 345), (0, 18), (0, 46)]
-        incorrect_list = [(Fraction(i), j) for i, j in incorrect_list]
         self.assertEqual(Polynomial._check_if_tuple_contains_coefficients(incorrect_list), False)
 
     def test_check_if_correctly_formatted_tuple(self):
@@ -65,7 +59,6 @@ class TestPolynomial(unittest.TestCase):
 
     def test_collect_terms(self):
         array = [(1, 0), (4, 0), (3, 5), (2, 7), (27, 7), (6, 7), (2, 2), (5, 2)]
-        array = [(Fraction(i), j) for i, j in array]
         final_vector = {(5, 0), (7, 2), (3, 5), (35, 7)}
         self.assertEqual(set(Polynomial._collect_terms(array)), final_vector)
 
@@ -92,7 +85,7 @@ class TestPolynomial(unittest.TestCase):
     def test_constant_multiplication(self):
         poly = Polynomial([3, 4, 2, 6, 0, 5, 0, 3, 2])
         result_target = [12, 16, 8, 24, 0, 20, 0, 12, 8]
-        self.assertEqual(poly.constant_mul(4).get_vector_repr(), [Fraction(i) for i in result_target])
+        self.assertEqual(poly.constant_mul(4).get_vector_repr(), result_target)
 
     def test_get_degree(self):
         self.assertEqual(self.poly_1.get_degree(), 13)
@@ -104,12 +97,8 @@ class TestPolynomial(unittest.TestCase):
         poly2 = Polynomial.create_random_polynomial(terms)
 
         self.assertEqual(type(poly1), Polynomial)
-        fractions1 = [type(i) if type(i) is Fraction else False for i in poly1.get_vector_repr()]
-        self.assertTrue(all(fractions1), True)
-
         self.assertEqual(type(poly2), Polynomial)
-        fractions2 = [type(i) if type(i) is Fraction else False for i in poly2.get_vector_repr()]
-        self.assertTrue(all(fractions2), True)
+
         number_of_terms = len([i for i in poly2.get_vector_repr() if i])
         self.assertEqual(number_of_terms, terms)
 
