@@ -5,16 +5,14 @@ from fractions import Fraction
 
 
 class Polynomial:
-    """Creates a polynomial object from a list of tuples, or a list."""
+    """Creates a polynomial object from a list of tuples, or from a list."""
 
-    def __init__(self, array: List[
-            Union[int, float, Fraction, Tuple[Union[int, float, Fraction], Union[int, Fraction]
-            ]]]):
+    def __init__(self, array: List[Union[int, float, Tuple[Union[int, float], int]]]):
         """
         Args:
-            Two different types: First, a list of either type int, float, or Fraction objects. Second, a list of tuples
+            Two different types: First, a list of either type int or float. Second, a list of tuples
                 of length two, each representing an algebraic polynomial term. The first tuple element corresponds
-                to the term's coefficient and is either an int, float or Fraction. The second tuple element
+                to the term's coefficient and is either an int or float. The second tuple element
                 corresponds to the term's power and must evaluate to a positive integer >= 0
         Examples:
             >>> poly = Polynomial([(2, 3), (5, 2), (2, 1), (6, 3)])
@@ -30,9 +28,7 @@ class Polynomial:
         """
         if not array:
             raise ValueError("Array must not be empty.")
-
         if self._check_if_correctly_formatted_tuple(array):
-            array = [(Fraction(i), int(j)) for i, j in array]
             if not self._check_if_tuple_contains_coefficients(array):
                 raise ValueError("Incorrect formatting: at least one non-zero coefficient needed.")
             processed_array = self._collect_terms(array)
@@ -41,52 +37,45 @@ class Polynomial:
             # Feed polynomial coefficients into array
             for i, j in processed_array:
                 empty_array[j] = i
-            vector_repr = [Fraction(i).limit_denominator(100) for i in empty_array]
-            self.vector_repr = self._trim_array(vector_repr)
-
-        elif all(type(x) in {int, float, Fraction} for x in array):
+            self._vector_repr = self._trim_array(empty_array)
+        elif all(type(x) in {int, float} for x in array):
             if self._check_if_list_only_contains_zeroes(array):
-                raise ValueError("Array must contain at lease one non-zero int, float, or Fraction.")
-            vector_repr = self._trim_array(array)
-            self.vector_repr = [Fraction(i).limit_denominator(100) for i in vector_repr]
+                raise ValueError("Array must contain at lease one non-zero int or float.")
+            self._vector_repr = self._trim_array(array)
         else:
             raise ValueError("Incorrect list formatting.")
+        self._human_readable_vector_repr = [Fraction(i).limit_denominator(100) for i in self._vector_repr]
 
     @staticmethod
     def _check_if_correctly_formatted_tuple(
-            array: List[Tuple[Union[int, float, Fraction], Union[int, Fraction]]]) -> bool:
+            array: List[Tuple[Union[int, float], int]]) -> bool:
         """Determines if every tuple in the array is correctly formatted."""
         for element in array:
             if not (type(element) is tuple
                     and len(element) == 2
-                    and type(element[0]) in {int, float, Fraction}
-                    and type(element[1]) in {int, Fraction}
+                    and type(element[0]) in {int, float}
+                    and type(element[1]) is int
                     and element[1] >= 0):
                 return False
-            try:
-                if element[1].denominator != 1:
-                    return False
-            except AttributeError:
-                pass
         return True
 
     @staticmethod
-    def _check_if_tuple_contains_coefficients(array: List[Tuple[Fraction, int]]) -> bool:
+    def _check_if_tuple_contains_coefficients(array: List[Tuple[Union[int, float], int]]) -> bool:
         return any(i for i, j in array)
 
     @staticmethod
-    def _check_if_list_only_contains_zeroes(array: List[Union[int, float, Fraction]]) -> bool:
+    def _check_if_list_only_contains_zeroes(array: List[Union[int, float]]) -> bool:
         return all(1 if not item else 0 for item in array)
 
     @staticmethod
-    def _trim_array(array: List[Fraction]) -> List[Fraction]:
+    def _trim_array(array: List[Union[int, float]]) -> List[Union[int, float]]:
         """
         Removes unnecessary higher order terms with zero value constants.
 
         Example:
-        >>> array = [Fraction(1, 1), Fraction(2, 1), Fraction(3, 1),Fraction(0, 1), Fraction(0, 1), Fraction(0, 1)]
+        >>> array = [1, 2, 3, 0, 0, 0]
         >>> Polynomial._trim_array(array)
-        [Fraction(1, 1), Fraction(2, 1), Fraction(3, 1)]
+        [1, 2, 3]
         """
         index = len(array) - 1
         while array[index] == 0:
@@ -94,21 +83,20 @@ class Polynomial:
         return array[:index + 1]
 
     @staticmethod
-    def _collect_terms(input_array: List[Tuple[Fraction, int]]) -> List[Tuple[Fraction, int]]:
+    def _collect_terms(input_array: List[Tuple[Union[int, float], int]]) -> List[Tuple[Union[int, float], int]]:
         """
         Collects same powered terms.
 
         Example:
-        >>> array = [(Fraction(1), 1), (Fraction(2), 1), (Fraction(3), 2), (Fraction(8), 2)]
+        >>> array = [(1, 1), (2, 1), (3, 2), (8, 2)]
         >>> Polynomial._collect_terms(array)
-        [(Fraction(3, 1), 1), (Fraction(11, 1), 2)]
+        [(3, 1), (11, 2)]
         """
         term_dict = dict()
         for i, j in input_array:
             term_dict[j] = term_dict.get(j, 0) + i
         items = term_dict.items()
-        result = [(j, i) for i, j in items]
-        return result
+        return [(j, i) for i, j in items]
 
     @classmethod
     def create_random_polynomial(cls, number_of_terms: int = None) -> "Polynomial":
@@ -125,7 +113,7 @@ class Polynomial:
             array.append((random.randint(1, 10), i))
         return cls(array)
 
-    def _operation_helper(self, other: "Polynomial", operation: operator) -> List[Union[int, float, Fraction]]:
+    def _operation_helper(self, other: "Polynomial", operation: operator) -> List[Union[int, float]]:
         size_difference = abs(len(self) - len(other))
         if size_difference:
             vector_extension = [0] * size_difference
@@ -152,14 +140,15 @@ class Polynomial:
         for i in range(len(self.get_vector_repr())):
             for j in range(len(other.get_vector_repr())):
                 output.append(
-                    (self.vector_repr[i] * other.get_vector_repr()[j], i + j))
+                    (self._vector_repr[i] * other.get_vector_repr()[j], i + j)
+                    )
         return Polynomial(output)
 
     def __mul__(self, other: "Polynomial") -> "Polynomial":
         return self.mul(other)
 
     def constant_mul(self, constant: int or float) -> "Polynomial":
-        return Polynomial([constant * i for i in self.vector_repr])
+        return Polynomial([constant * i for i in self._vector_repr])
 
     @classmethod
     def get_derivative(cls, poly: "Polynomial") -> "Polynomial":
@@ -184,37 +173,37 @@ class Polynomial:
     def integrate(self, constant: int) -> "Polynomial":
         return self.get_integral(self, constant)
 
-    def get_vector_repr(self) -> List[Union[Fraction]]:
-        return self.vector_repr
+    def get_vector_repr(self) -> List[Union[int, float]]:
+        return self._vector_repr
 
     def get_vector_str(self) -> List[str]:
         """Human readable vector representation of the polynomial."""
-        return [str(i.numerator) if i.denominator == 1 else str(i) for i in self.vector_repr]
+        return [str(i.numerator) if i.denominator == 1 else str(i) for i in self._human_readable_vector_repr]
 
     def get_degree(self) -> int:
         """Return order of highest degree term."""
-        return len(self.vector_repr) - 1
+        return len(self._vector_repr) - 1
 
     def __len__(self):
-        return len(self.vector_repr)
+        return len(self._vector_repr)
 
     def __eq__(self, other: "Polynomial"):
         return self.get_vector_repr() == other.get_vector_repr()
 
     def __str__(self):
         output = []
-        for i in range(len(self.get_vector_repr()) - 1, -1, -1):
-            if self.vector_repr[i]:
+        for i in range(len(self._human_readable_vector_repr) - 1, -1, -1):
+            if self._vector_repr[i]:
                 if not i:
-                    output.append(str(self.get_vector_repr()[i]))
+                    output.append(str(self._human_readable_vector_repr[i]))
                 elif i == 1:
-                    if self.vector_repr[i] == 1:
+                    if self._human_readable_vector_repr[i] == 1:
                         output.append(str("X"))
                     else:
-                        output.append(str(self.get_vector_repr()[i]) + "X")
+                        output.append(str(self._human_readable_vector_repr[i]) + "X")
                 else:
-                    if self.vector_repr[i] == 1:
+                    if self._human_readable_vector_repr[i] == 1:
                         output.append("X^" + str(i))
                     else:
-                        output.append(str(self.get_vector_repr()[i]) + "X^" + str(i))
+                        output.append(str(self._human_readable_vector_repr[i]) + "X^" + str(i))
         return " + ".join(output)
