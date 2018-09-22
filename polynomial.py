@@ -19,15 +19,16 @@ class Polynomial:
         Examples:
             >>> poly = Polynomial([(2, 3), (5, -2), (.5, 1), (6, 3)])
             >>> str(poly)
-            '8X^3 + 5X^2 + 2X'
+            '8X^3 + 5X^-2 + 1/2X'
             >>> poly.get_poly()
-            [(8, 3), (5, -2), (1/2, 1)]
+            [(5, -2), (0.5, 1), (8, 3)]
             >>> poly2 = Polynomial([4, 2, 0, 5, 0])
             >>> str(poly2)
             '5X^3 + 2X + 4'
             >>> poly2.get_poly()
             [(4, 0), (2, 1), (5, 3)]
         """
+
         if not array or array == [(0, 0)]:
             self._poly = [(0, 0)]
         elif self._check_if_correctly_formatted_tuple(array):
@@ -58,6 +59,7 @@ class Polynomial:
         >>> Polynomial._check_if_correctly_formatted_tuple([(2, 3), (-2, .3), (2.2, -34.8)])
         True
         """
+
         for element in array:
             if not (type(element) is tuple
                     and len(element) == 2
@@ -69,9 +71,11 @@ class Polynomial:
     @staticmethod
     def _check_if_tuple_contains_coefficients(array: List[Tuple[Union[int, float], Union[int, float]]]) -> bool:
         """
+        Returns false if all coefficients are zero else true.
         >>> Polynomial._check_if_tuple_contains_coefficients([(0, 3), (0, 5), (0, -5)])
         False
         """
+
         return any(i for i, j in array)
 
     @staticmethod
@@ -96,6 +100,7 @@ class Polynomial:
     def sort_tuple_list(array: List[Tuple[Union[int, float], Union[int, float]]]) \
             -> List[Tuple[Union[int, float], Union[int, float]]]:
         """Sorts the tuple array by each term's power in O(nlog(n)) time."""
+
         sorted_poly = sorted(array, key=lambda x: x[1])
         return sorted_poly
 
@@ -109,6 +114,7 @@ class Polynomial:
         >>> Polynomial.array_contains_only_int_float([2, "", -34.2])
         -1
         """
+
         zeroes = 0
         for i in array:
             if type(i) not in {int, float}:
@@ -122,15 +128,18 @@ class Polynomial:
     @staticmethod
     def vector_to_poly(array: List[Union[int, float]]) -> List[Tuple[Union[int, float], Union[int, float]]]:
         """
-        Converst list to list of tuples.
-        >>>Polynomial.vector_to_poly([0, 2, 4, -9])
+        Converts array to array of tuples.
+
+        >>> Polynomial.vector_to_poly([0, 2, 4, -9])
         [(2, 1), (4, 2), (-9, 3)]
         """
+
         return [(array[i], i) for i in range(len(array)) if array[i] != 0]
 
     @classmethod
     def create_random_polynomial(cls, number_of_terms: int = None) -> "Polynomial":
-        """Create a random Polynomial object with an optional fixed number of terms."""
+        """Creates a random Polynomial object with an optional fixed number of terms."""
+
         if number_of_terms:
             if 1 > number_of_terms > 20:
                 raise ValueError("number_of_terms must be > 1 and <= 20")
@@ -147,7 +156,13 @@ class Polynomial:
     def merge(array_1: List[Tuple[Union[int, float], Union[int, float]]],
               array_2: List[Tuple[Union[int, float], Union[int, float]]]) \
             -> List[Tuple[Union[int, float], Union[int, float]]]:
-        """Merges two sorted array of tuples into one sorted array of tuples in O(n) time."""
+        """
+        Merges two sorted arrays of tuples into one sorted array of tuples in O(n) time.
+
+        >>> Polynomial.merge([(2, -5), (3, 0), (1, 1)], [(-2, 0), (3, 2), (3, 5)])
+        [(2, -5), (1, 0), (1, 1), (3, 2), (3, 5)]
+        """
+
         index_1 = 0
         index_2 = 0
         output = []
@@ -178,7 +193,15 @@ class Polynomial:
         return self.merge(self.get_poly(), poly_vector)
 
     def add(self, other_poly: "Polynomial") -> None:
-        """O(n + nlog(n)) time <- confirm"""
+        """
+        Combines two polynomials additively.
+
+        >>> poly = Polynomial([(1, 2), (4, 8)])
+        >>> poly.add(Polynomial([(3, 2), (3, -7)]))
+        >>> poly.get_poly()
+        [(3, -7), (4, 2), (4, 8)]
+        """
+
         terms = self._addition_helper(other_poly.get_poly())
         self.set_poly(terms)
 
@@ -192,6 +215,15 @@ class Polynomial:
         return self.merge(self.get_poly(), neg_poly)
 
     def subtract(self, other: "Polynomial") -> None:
+        """
+        Subtracts one polynomial from another.
+
+        >>> poly = Polynomial([(1, 2), (4, 8)])
+        >>> poly.subtract(Polynomial([(3, 2), (3, -7)]))
+        >>> poly.get_poly()
+        [(-3, -7), (-2, 2), (4, 8)]
+        """
+
         terms = self._subtraction_helper(other.get_poly())
         self.set_poly(terms)
 
@@ -211,6 +243,17 @@ class Polynomial:
         return self.sort_tuple_list(self._collect_terms(output))
 
     def mul(self, other: "Polynomial") -> None:
+        """
+        Combines two polynomials multiplicatively.
+
+        >>> poly = Polynomial([(1, 2), (4, 8)])
+        >>> poly.mul(Polynomial([(3, 2), (3, -7)]))
+        >>> poly.get_poly()
+        [(3, -5), (12, 1), (3, 4), (12, 10)]
+        >>> str(poly)
+        '12X^10 + 3X^-5 + 3X^4 + 12X'
+        """
+
         terms = self._multiplication_helper(other.get_poly())
         self.set_poly(terms)
 
@@ -219,6 +262,15 @@ class Polynomial:
         return Polynomial(terms)
 
     def constant_mul(self, constant: Union[int, float]) -> None:
+        """
+        Multiples the polynomial by a constant.
+
+        >>> poly = Polynomial([2, 3, 4])
+        >>> poly.constant_mul(4)
+        >>> poly.get_poly()
+        [(8, 0), (12, 1), (16, 2)]
+        """
+
         terms = ([(constant * i, j) for i, j in self.get_poly()])
         self.set_poly(terms)
 
@@ -230,6 +282,13 @@ class Polynomial:
         return cls(derivative)
 
     def derive(self) -> None:
+        """
+        Converts the polynomial into its derivative.
+        >>> poly = Polynomial([(2, 3), (5, -5), (1, 1)])
+        >>> poly.derive()
+        >>> str(poly)
+        '-25X^-6 + 6X^2 + 1'
+        """
         derivative = [(i * j, j - 1) for i, j in self.get_poly() if j != 0]
         self.set_poly(derivative)
 
@@ -254,11 +313,21 @@ class Polynomial:
         return cls(integral)
 
     def integrate(self, constant: Union[int, float]):
+        """
+        Converts the polynomial into its integral with a constant.
+
+        >>> poly = Polynomial([(2, 3), (5, -5), (1, 1)])
+        >>> poly.integrate(3)
+        >>> str(poly)
+        '1/2X^4 - 5/4X^-4 + 1/2X^2 + 3'
+        """
+
         integral = self._integration_helper(self, constant)
         self.set_poly(integral)
 
     def get_degree(self) -> int:
         """Return power of the term with the highest degree absolute value power."""
+
         first = self.get_poly()[-1][1]
         last = self.get_poly()[0][1]
         if abs(first) >= abs(last):
@@ -270,6 +339,7 @@ class Polynomial:
                                       target: Union[int, float]):
         """
         Returns index of next largest value of target in the array of tuples.
+
         >>> Polynomial.next_highest_index_bin_search([(1, -3), (-2, 1), (4, 2), (-6, 5)], 0)
         1
         """
@@ -324,7 +394,7 @@ class Polynomial:
                 if coeff == 1:
                     output.append(sign + "X")
                 else:
-                    output.append(sign + str(abs(coeff)) + "X")
+                    output.append(sign + str(to_frac(abs(coeff))) + "X")
             else:
                 if len(output) == 0:
                     if abs(coeff) == 1:
